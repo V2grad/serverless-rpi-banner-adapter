@@ -1,13 +1,28 @@
 const listing = require('./src/banner')
 const seats = require('./src/seats')
 
+
+function errHandle(err) {
+    let status = err.response.status
+    let statusText = err.response.statusText
+    return `[${status}] ${statusText}`
+}
 // Let AWS to handle the route
-exports.listing = async (event) => {
+exports.listing = (event, context, callback) => {
     let terms = event.terms
-    return await listing.listing(terms);
+    listing.listing(terms).then(res => {
+        callback(null, res)
+    }).
+    catch((err => {
+        callback(errHandle(err))
+    }));
 };
 
-exports.seats = async (event) => {
+exports.seats = (event, context, callback) => {
     let terms = event.terms
-    return await seats.seats(terms)
+    seats.seats(terms).then(res => {
+        callback(null, res)
+    }).catch((err => {
+        callback(errHandle(err))
+    }))
 }

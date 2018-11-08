@@ -23,8 +23,6 @@ module.exports = {
         const section = `https://sis.rpi.edu/reg/rocs/YACS_${termShortName}.xml`
         return axios(section).then(res => {
             return extractSeats(res.data)
-        }).catch((err => {
-            return err
-        }))
-    },
+        })
+},
 }

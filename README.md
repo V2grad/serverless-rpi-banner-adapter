@@ -22,3 +22,5 @@ So you can get this params in `event` variable.
 
 - Here I put two function in the same repo for convenience. So for two routes here I upload the same code and export two different handler which you can change in the `inline code editor`
 - Before you upload this repo to AWS Lambda, you need to include `node_modules`. Read this [tutorial](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-create-deployment-pkg.html)
+- You may need to increase the time limit (at least 5s)
+- You may also want to learn something about `handler` [here](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html)

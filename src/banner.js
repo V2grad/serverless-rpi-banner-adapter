@@ -1,6 +1,6 @@
 const axios = require('axios')
 const xml = require('./utils/xml')
-
+require('./utils/titleize')
 
 // Tool set
 function wrapper(data) {
@@ -102,8 +102,6 @@ module.exports = {
         const listing = `https://sis.rpi.edu/reg/rocs/${termShortName}.xml`
         return axios(listing).then(res => {
             return extractCourse(res.data)
-        }).catch(err => {
-            return err
         })
     }
 }
