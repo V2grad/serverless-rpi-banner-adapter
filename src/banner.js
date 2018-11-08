@@ -1,51 +1,21 @@
 const axios = require('axios')
-const xml = require('fast-xml-parser')
+const xml = require('./utils/xml')
 
-String.prototype.titleize = function() {
-    return this.toLowerCase().replace(/(?:^|\s|-)\S/g, function(m) {
-        return m.toUpperCase();
-    });
-}
 
-const options = {
-    attributeNamePrefix: "",
-    attrNodeName: "attr", //default is 'false'
-    textNodeName: "#text",
-    ignoreAttributes: false,
-    ignoreNameSpace: false,
-    allowBooleanAttributes: false,
-    parseNodeValue: true,
-    parseAttributeValue: false,
-    trimValues: true,
-    cdataTagName: "__cdata", //default is 'false'
-    cdataPositionChar: "\\c",
-    localeRange: "", //To support non english character in tag/attribute values.
-    parseTrueNumberOnly: false,
-    // attrValueProcessor: a => a //default is a=>a
-    // tagValueProcessor: a => he.decode(a) //default is a=>a
-};
-
-function extractSeats(data) {
-    let arr = []
-    let jsonObj = xml.parse(data, options)
-    jsonObj.CourseDB.SECTION.forEach(e => {
-        let attr = e.attr
-        arr.push({
-            crn: attr.crn,
-            shortname: attr.num,
-            seats: attr.seats,
-            seats_taken: attr.students
-        })
-    })
-    return {
-        sections: arr
+// Tool set
+function wrapper(data) {
+    if (!(data instanceof Array)) {
+        data = [data];
     }
+    return data
 }
 
+// Main
 function extractCourse(data) {
     let result = {}
-    let jsonObj = xml.parse(data, options)
+    let jsonObj = xml.parseXML(data)
     let course = jsonObj.CourseDB.COURSE
+
     course.forEach(c => {
         let a = c.attr
         if (result[a.dept] === undefined) {
@@ -62,6 +32,7 @@ function extractCourse(data) {
             sections: extractSection(c.SECTION)
         })
     })
+
     let wrapper = []
     Object.keys(result).forEach(d => {
         wrapper.push({
@@ -69,6 +40,7 @@ function extractCourse(data) {
             listings: result[d]
         })
     })
+
     return {
         subjects: wrapper
     }
@@ -88,7 +60,9 @@ function extractSection(data) {
                 periods: p,
                 instructors: [...new Set([].concat.apply([], p.map((v) => {
                     return v.instructor
-                })))].filter((i) => { return i !== 'Staff' })
+                })))].filter((i) => {
+                    return i !== 'Staff'
+                })
             })
         })
     }
@@ -123,26 +97,13 @@ function extractPeriod(data) {
     return result
 }
 
-function wrapper(data) {
-
-    if (!(data instanceof Array)) {
-        data = [data];
-    }
-
-    return data
-}
-
 module.exports = {
-    section(termShortName) {
-        const section = `https://sis.rpi.edu/reg/rocs/YACS_${termShortName}.xml`
-        return axios.get(section).then(res => {
-            return extractSeats(res.data)
-        })
-    },
     listing(termShortName) {
         const listing = `https://sis.rpi.edu/reg/rocs/${termShortName}.xml`
-        return axios.get(listing).then(res => {
+        return axios(listing).then(res => {
             return extractCourse(res.data)
+        }).catch(err => {
+            return err
         })
     }
 }
